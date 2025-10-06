@@ -1,6 +1,7 @@
 import tensorrt as trt
 import os
 
+# 🔸 Sadece WARNING seviyesindeki TensorRT loglarını göster
 TRT_LOGGER = trt.Logger(trt.Logger.WARNING)
 
 def build_engine(onnx_file_path, engine_file_path):
@@ -28,12 +29,12 @@ def build_engine(onnx_file_path, engine_file_path):
     print(f"  - Output sayısı: {network.num_outputs}")
 
     for i in range(network.num_inputs):
-        input_tensor = network.get_input(i)
-        print(f"  - Input {i}: {input_tensor.name}, shape: {input_tensor.shape}")
+        inp = network.get_input(i)
+        print(f"  - Input {i}: {inp.name}, shape: {inp.shape}")
 
     for i in range(network.num_outputs):
-        output_tensor = network.get_output(i)
-        print(f"  - Output {i}: {output_tensor.name}, shape: {output_tensor.shape}")
+        out = network.get_output(i)
+        print(f"  - Output {i}: {out.name}, shape: {out.shape}")
 
     # Builder Config
     config = builder.create_builder_config()
@@ -66,13 +67,9 @@ def build_engine(onnx_file_path, engine_file_path):
     serialized_engine = builder.build_serialized_network(network, config)
 
     if serialized_engine is None:
-        print("❌ Engine oluşturulamadı! Muhtemel sebepler:")
-        print("   - GPU belleği yetersiz olabilir")
-        print("   - ONNX modeli uyumsuz olabilir (simplify deneyin)")
-        print("   - Workspace alanını artırmayı deneyin")
+        print("❌ Engine oluşturulamadı!")
         return False
 
-    # Engine'i dosyaya kaydet
     with open(engine_file_path, "wb") as f:
         f.write(serialized_engine)
 
@@ -88,13 +85,24 @@ def build_engine(onnx_file_path, engine_file_path):
         return False
 
     print("🔍 Engine bilgisi:")
-    print(f"  - Tensor sayısı: {engine.num_io_tensors}")
-    for i in range(engine.num_io_tensors):
-        name = engine.get_tensor_name(i)
-        mode = engine.get_tensor_mode(name)
-        shape = engine.get_tensor_shape(name)
-        dtype = engine.get_tensor_dtype(name)
-        print(f"  - Tensor {i}: {name}, mode={mode}, shape={shape}, dtype={dtype}")
+
+    # ✅ TensorRT versiyonuna göre doğru API’yi seç
+    if hasattr(engine, "num_io_tensors"):
+        print(f"  - Tensor sayısı: {engine.num_io_tensors}")
+        for i in range(engine.num_io_tensors):
+            name = engine.get_tensor_name(i)
+            mode = engine.get_tensor_mode(name)
+            shape = engine.get_tensor_shape(name)
+            dtype = engine.get_tensor_dtype(name)
+            print(f"  - {i}: {name}, mode={mode}, shape={shape}, dtype={dtype}")
+    else:
+        print(f"  - Tensor sayısı (bindings): {engine.num_bindings}")
+        for i in range(engine.num_bindings):
+            name = engine.get_binding_name(i)
+            mode = "INPUT" if engine.binding_is_input(i) else "OUTPUT"
+            shape = engine.get_binding_shape(i)
+            dtype = engine.get_binding_dtype(i)
+            print(f"  - {i}: {name}, mode={mode}, shape={shape}, dtype={dtype}")
 
     print("✅ ENGINE BUILD TAMAMLANDI")
     return True
