@@ -18,8 +18,11 @@ class Visualizer:
         for detection in results:
             box = detection['box']
             score = detection['score']
-            class_id = detection['class_id']
             
+            #tek sınıf için
+            class_id = 0
+            #class_id = detection['class_id']
+
             # Kutu Koordinatları (x1, y1, x2, y2)
             x1, y1, x2, y2 = box
             
