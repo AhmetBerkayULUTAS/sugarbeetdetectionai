@@ -1,3 +1,8 @@
+#!/bin/bash
+
+# OpenCV, PyCUDA ve TensorRT Kurulum Scripti - VENV Desteği ile
+# Jetson Nano için optimize edilmiştir
+
 set -e  # Hata durumunda scripti durdur
 
 echo "=========================================="
@@ -11,41 +16,21 @@ VENV_DIR="$PROJECT_DIR/venv"
 echo "📁 Proje dizini: $PROJECT_DIR"
 echo "🐍 Virtual Environment: $VENV_DIR"
 
-# Sistem güncellemeleri
-echo "🔄 Sistem paketleri güncelleniyor..."
-sudo apt update
-sudo apt upgrade -y
-
-# Python 3.6 ve VENV için gerekli paketler
-echo "📦 Python 3.6 ve VENV kuruluyor..."
-sudo apt install -y \
-    python3.6 \
-    python3.6-dev \
-    python3.6-venv \
-    python3-pip \
-    build-essential \
-    libssl-dev \
-    gfortran \
-    libopenblas-dev \
-    liblapack-dev \
-    libopenmpi-dev \
-    libomp-dev \
-    libjpeg-dev \
-    cmake \
-    git \
-    wget \
-    curl \
-    unzip \
-    pkg-config \
-    zlib1g-dev
+# Sistem Python versiyonunu kontrol et
+CURRENT_PYTHON=$(python3 --version 2>&1)
+echo "🔍 Mevcut Python: $CURRENT_PYTHON"
 
 # Virtual Environment oluştur
 echo "🐍 Virtual Environment oluşturuluyor..."
-python3.6 -m venv "$VENV_DIR"
+python3 -m venv "$VENV_DIR"
 
 # VENV'i aktive et
 echo "🔧 VENV aktive ediliyor..."
 source "$VENV_DIR/bin/activate"
+
+# VENV içindeki Python versiyonunu kontrol et
+VENV_PYTHON=$(python --version 2>&1)
+echo "🎯 VENV Python: $VENV_PYTHON"
 
 # pip'i güncelle
 echo "📥 pip güncelleniyor..."
@@ -146,7 +131,6 @@ install_opencv() {
     if [[ $model == *"Jetson Nano"* ]]; then
         sudo apt-get install -y build-essential git unzip pkg-config zlib1g-dev
         sudo apt-get install -y python3-dev python3-numpy
-        sudo apt-get install -y python-dev python-numpy
         sudo apt-get install -y gstreamer1.0-tools libgstreamer-plugins-base1.0-dev
         sudo apt-get install -y libgstreamer-plugins-good1.0-dev
         sudo apt-get install -y libtbb2 libgtk-3-dev libxine2-dev
@@ -291,12 +275,12 @@ echo "🐍 VENV içinde Python paketleri kuruluyor..."
 
 # Temel paketler
 pip install \
-    numpy==1.19.5 \
-    Cython==0.29.36 \
-    PyYAML==5.3.1 \
-    tqdm==4.64.1 \
-    appdirs==1.4.4 \
-    typing-extensions==4.1.1
+    numpy \
+    Cython \
+    PyYAML \
+    tqdm \
+    appdirs \
+    typing-extensions
 
 # PyCUDA
 echo "🚀 PyCUDA kuruluyor..."
