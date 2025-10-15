@@ -1,19 +1,20 @@
+#!/bin/bash
+
+# OpenCV, PyCUDA ve TensorRT Kurulum Scripti - VENV Desteği ile
+# Jetson Nano için optimize edilmiştir
+
 set -e  # Hata durumunda scripti durdur
 
 echo "=========================================="
 echo "PANCAR TESPİT SİSTEMİ KURULUMU"
 echo "=========================================="
 
-# Proje dizini
-PROJECT_DIR="$HOME/beetle_detection"
+# Mevcut dizini proje dizini olarak kullan
+PROJECT_DIR=$(pwd)
 VENV_DIR="$PROJECT_DIR/venv"
 
 echo "📁 Proje dizini: $PROJECT_DIR"
 echo "🐍 Virtual Environment: $VENV_DIR"
-
-# Proje dizini oluştur
-mkdir -p "$PROJECT_DIR"
-cd "$PROJECT_DIR"
 
 # Sistem güncellemeleri
 echo "🔄 Sistem paketleri güncelleniyor..."
@@ -286,7 +287,7 @@ else
     install_opencv
 fi
 
-# VENV'e geri dön
+# Proje dizinine geri dön
 cd "$PROJECT_DIR"
 source "$VENV_DIR/bin/activate"
 
@@ -348,17 +349,15 @@ echo "🚀 PROJE HAZIR!"
 echo "=========================================="
 echo "📋 KULLANIM TALİMATLARI:"
 echo ""
-echo "1. Proje dizininize gidin:"
-echo "   cd /proje/dizininiz"
+echo "1. Bu dizinde VENV'i aktive edin:"
+echo "   source venv/bin/activate"
 echo ""
-echo "2. VENV'i aktive edin:"
-echo "   source $VENV_DIR/bin/activate"
-echo ""
-echo "3. Projeyi çalıştırın:"
+echo "2. Projeyi çalıştırın:"
 echo "   python main.py"
 echo ""
-echo "4. İş bitince (isteğe bağlı):"
+echo "3. İş bitince (isteğe bağlı):"
 echo "   deactivate"
 echo ""
-echo "📍 VENV dizini: $VENV_DIR"
+echo "📍 Proje dizini: $PROJECT_DIR"
+echo "🐍 VENV dizini: $VENV_DIR"
 echo "=========================================="
