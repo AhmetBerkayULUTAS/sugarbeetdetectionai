@@ -5,7 +5,7 @@ from camera import Camera
 from metrics import Metrics
 from visualizer import Visualizer
 
-ENGINE_MODEL_PATH = "model2.engine"
+ENGINE_MODEL_PATH = "best.engine"
 CONF_THRESHOLD = 0.5 #model1:0.27 model2:0.52
 NMS_THRESHOLD = 0.30
 CLASS_NAMES = ["sugar_beet"]

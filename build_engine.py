@@ -109,8 +109,8 @@ def build_engine(onnx_file_path, engine_file_path):
 
 
 if __name__ == "__main__":
-    onnx_path = "model1.onnx"
-    engine_path = "model1.engine"
+    onnx_path = "best.onnx"
+    engine_path = "best.engine"
 
     if not os.path.exists(onnx_path):
         print(f"❌ ONNX dosyası bulunamadı: {onnx_path}")
