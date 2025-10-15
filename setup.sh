@@ -39,26 +39,18 @@ pip install --upgrade pip
 echo "✅ Virtual Environment hazır!"
 echo "📍 VENV yolu: $VENV_DIR"
 
-# === PYCUDA İÇİN KRİTİK PAKETLER ===
-echo "📚 PyCUDA için gerekli bağımlılıklar kuruluyor..."
+# === KRİTİK GELİŞTİRME BAŞLIKLARI ===
+echo "📚 KRİTİK: Geliştirme başlık dosyaları kuruluyor..."
 sudo apt update
-
-# Sadece gerekli development paketleri
 sudo apt install -y \
-    python3-dev \
-    python3-pip \
-    python3-venv \
-    libboost-python-dev \
-    libboost-thread-dev \
     build-essential \
     libc6-dev \
     linux-libc-dev \
-    gcc \
-    g++ \
-    make \
-    cmake
+    python3-dev \
+    libboost-python-dev \
+    libboost-thread-dev
 
-echo "✅ PyCUDA bağımlılıkları kuruldu!"
+echo "✅ Geliştirme başlıkları kuruldu!"
 
 # === CUDA KONTROLÜ VE ORTAM DEĞİŞKENLERİ ===
 echo "🔍 CUDA kontrol ediliyor..."
@@ -67,22 +59,12 @@ if [ -d "/usr/local/cuda" ]; then
     echo "✅ CUDA zaten kurulu: $CUDA_VERSION"
     echo "📍 CUDA yolu: /usr/local/cuda"
     
-    # CUDA başlık dosyalarını kontrol et
-    if [ -f "/usr/local/cuda/include/cuda.h" ]; then
-        echo "✅ CUDA başlık dosyaları mevcut"
-    else
-        echo "⚠️  CUDA başlık dosyaları eksik, PyCUDA derlemesi sorun çıkarabilir"
-    fi
-    
-    # CUDA ortam değişkenlerini ayarla (PyCUDA öncesi)
+    # CUDA ortam değişkenlerini ayarla
     echo "🔧 CUDA ortam değişkenleri ayarlanıyor..."
     export PATH=/usr/local/cuda/bin:$PATH
     export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
-    echo "✅ CUDA PATH: /usr/local/cuda/bin"
-    echo "✅ CUDA LD_LIBRARY_PATH: /usr/local/cuda/lib64"
 else
     echo "❌ CUDA bulunamadı! Jetson Nano'da CUDA JetPack ile kurulu olmalı"
-    echo "💡 Çözüm: L4T JetPack'i yeniden yükleyin"
     exit 1
 fi
 
@@ -329,15 +311,15 @@ pip install \
     appdirs \
     typing-extensions
 
-# PyCUDA - CUDA ORTAM DEĞİŞKENLERİ AYARLANDI
-echo "🚀 PyCUDA kuruluyor (CUDA ortam değişkenleri hazır)..."
-pip install pycuda
+# PyCUDA - STANDART KURULUM
+echo "🚀 PyCUDA kuruluyor..."
+pip install pycuda --no-cache-dir
 
 # === TENSORRT (GÜVENLİ KURULUM) ===
 echo "🧠 TensorRT bağımlılıkları kontrol ediliyor..."
 sudo apt install -y --no-install-recommends \
     libnvinfer-dev libnvinfer-bin libnvinfer-plugin-dev \
-    libnvparsers-dev libnvonnxparsers-dev || echo "ℹ️  TensorRT paketleri zaten kurulu veya mevcut değil"
+    libnvparsers-dev libnvonnxparsers-dev || echo "ℹ️  TensorRT paketleri zaten kurulu"
 
 echo "=========================================="
 echo "🎉 KURULUM TAMAMLANDI!"
@@ -349,41 +331,17 @@ echo "🔍 Kurulum doğrulanıyor..."
 echo "Python ve VENV:"
 python --version
 pip --version
-echo "VENV aktif: $VIRTUAL_ENV"
-
-echo "Python paketleri:"
-python -c "import numpy; print(f'NumPy: {numpy.__version__}')"
-python -c "import Cython; print('Cython: OK')"
-
-echo "OpenCV:"
-python -c "import cv2; print(f'OpenCV: {cv2.__version__}')"
 
 echo "PyCUDA:"
-python -c "import pycuda.driver as cuda; print('PyCUDA: OK')"
+python -c "import pycuda.driver as cuda; print('✅ PyCUDA başarıyla kuruldu!')"
+
+echo "OpenCV:"
+python -c "import cv2; print(f'✅ OpenCV {cv2.__version__}')"
 
 echo "TensorRT:"
-python -c "import tensorrt; print(f'TensorRT: {tensorrt.__version__}')"
+python -c "import tensorrt; print(f'✅ TensorRT {tensorrt.__version__}')"
 
 echo ""
 echo "=========================================="
 echo "🚀 PROJE HAZIR!"
-echo "=========================================="
-echo "📋 KULLANIM TALİMATLARI:"
-echo ""
-echo "1. Bu dizinde VENV'i aktive edin:"
-echo "   source venv/bin/activate"
-echo ""
-echo "2. Projeyi çalıştırın:"
-echo "   python main.py"
-echo ""
-echo "3. İş bitince (isteğe bağlı):"
-echo "   deactivate"
-echo ""
-echo "📍 Proje dizini: $PROJECT_DIR"
-echo "🐍 VENV dizini: $VENV_DIR"
-echo ""
-echo "💡 NOT: CUDA ortam değişkenleri bu oturum için ayarlandı."
-echo "   Kalıcı olması için ~/.bashrc dosyanıza ekleyin:"
-echo "   export PATH=/usr/local/cuda/bin:\$PATH"
-echo "   export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH"
 echo "=========================================="
