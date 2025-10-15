@@ -1,36 +1,34 @@
-#!/bin/bash
-
-# OpenCV ve PyCUDA Kurulum Scripti
-# Jetson Nano için optimize edilmiştir
-
 set -e  # Hata durumunda scripti durdur
 
 echo "=========================================="
-echo "OpenCV ve PyCUDA Kurulumu Başlıyor"
+echo "PANCAR TESPİT SİSTEMİ KURULUMU"
 echo "=========================================="
 
-# Sistem bilgilerini al
-CPU_CORES=$(nproc)
-TOTAL_MEM=$(free -m | awk '/^Mem:/{print $2}')
-SWAP_MEM=$(free -m | awk '/^Swap:/{print $2}')
+# Proje dizini
+PROJECT_DIR="$HOME/beetle_detection"
+VENV_DIR="$PROJECT_DIR/venv"
 
-echo "Sistem Bilgileri:"
-echo "- CPU Çekirdekleri: $CPU_CORES"
-echo "- Toplam RAM: ${TOTAL_MEM}MB"
-echo "- Swap Alanı: ${SWAP_MEM}MB"
+echo "📁 Proje dizini: $PROJECT_DIR"
+echo "🐍 Virtual Environment: $VENV_DIR"
+
+# Proje dizini oluştur
+mkdir -p "$PROJECT_DIR"
+cd "$PROJECT_DIR"
 
 # Sistem güncellemeleri
-echo "Sistem paketleri güncelleniyor..."
+echo "🔄 Sistem paketleri güncelleniyor..."
 sudo apt update
 sudo apt upgrade -y
 
-# Temel bağımlılıklar
-echo "Temel bağımlılıklar kuruluyor..."
+# Python 3.6 ve VENV için gerekli paketler
+echo "📦 Python 3.6 ve VENV kuruluyor..."
 sudo apt install -y \
+    python3.6 \
+    python3.6-dev \
+    python3.6-venv \
     python3-pip \
     build-essential \
     libssl-dev \
-    python3-dev \
     gfortran \
     libopenblas-dev \
     liblapack-dev \
@@ -45,25 +43,20 @@ sudo apt install -y \
     pkg-config \
     zlib1g-dev
 
-# Python 3.6 için özel bağımlılıklar
-echo "Python 3.6 için özel bağımlılıklar kuruluyor..."
-sudo apt install -y \
-    python3.6 \
-    python3.6-dev
+# Virtual Environment oluştur
+echo "🐍 Virtual Environment oluşturuluyor..."
+python3.6 -m venv "$VENV_DIR"
+
+# VENV'i aktive et
+echo "🔧 VENV aktive ediliyor..."
+source "$VENV_DIR/bin/activate"
 
 # pip'i güncelle
-echo "pip güncelleniyor..."
-python3.6 -m pip install --upgrade pip
+echo "📥 pip güncelleniyor..."
+pip install --upgrade pip
 
-# === Proje için Gerekli Python Paketleri ===
-echo "Python paketleri kuruluyor..."
-python3.6 -m pip install \
-    numpy==1.19.5 \
-    Cython==0.29.36 \
-    PyYAML==5.3.1 \
-    tqdm==4.64.1 \
-    appdirs==1.4.4 \
-    typing-extensions==4.1.1
+echo "✅ Virtual Environment hazır!"
+echo "📍 VENV yolu: $VENV_DIR"
 
 # === OpenCV Kurulum Fonksiyonu ===
 install_opencv() {
@@ -76,20 +69,17 @@ install_opencv() {
     SWAP_MEM=$(free -m | awk '/^Swap:/{print $2}')
     RAM_MEM=$(free -m | awk '/^Mem:/{print $2}')
     
-    echo "Sistem Kaynakları:"
+    echo "💻 Sistem Kaynakları:"
     echo "- CPU Çekirdekleri: $CPU_CORES"
     echo "- RAM: ${RAM_MEM}MB"
     echo "- Swap: ${SWAP_MEM}MB"
     
-    # Check if the file /proc/device-tree/model exists
+    # Jetson model kontrolü
     if [ -e "/proc/device-tree/model" ]; then
-        # Read the model information from /proc/device-tree/model and remove null bytes
         model=$(tr -d '\0' < /proc/device-tree/model)
-        # Check if the model information contains "Jetson Nano Orion"
         echo ""
         if [[ $model == *"Orin"* ]]; then
             echo "Detecting a Jetson Nano Orin."
-            # Use always "-j 4"
             NO_JOB=4
             ARCH=8.7
             PTX="sm_87"
@@ -129,7 +119,7 @@ install_opencv() {
             ARCH=5.3
             PTX="sm_53"
             
-            # GÜNCELLENMİŞ KISIM: Swap kontrolü - 5.5GB altındaysa 2 çekirdek
+            # Swap kontrolü - 5.5GB altındaysa 2 çekirdek
             if [[ $SWAP_MEM -gt 5500 ]]; then
                 NO_JOB=4
                 echo "Yüksek swap alanı tespit edildi (>5.5GB). Derleme 4 çekirdek ile yapılacak."
@@ -148,15 +138,15 @@ install_opencv() {
         exit 1
     fi
     
-    echo "Installing OpenCV 4.9.0 on your Nano"
-    echo "It will take 3.5 hours !"
+    echo "🔄 OpenCV 4.9.0 kuruluyor..."
+    echo "⏰ Bu işlem 2-3 saat sürebilir!"
     
-    # reveal the CUDA location
+    # CUDA location
     cd ~
     sudo sh -c "echo '/usr/local/cuda/lib64' >> /etc/ld.so.conf.d/nvidia-tegra.conf"
     sudo ldconfig
     
-    # install the Jetson Nano dependencies first
+    # Jetson Nano dependencies
     if [[ $model == *"Jetson Nano"* ]]; then
         sudo apt-get install -y build-essential git unzip pkg-config zlib1g-dev
         sudo apt-get install -y python3-dev python3-numpy
@@ -166,12 +156,10 @@ install_opencv() {
         sudo apt-get install -y libtbb2 libgtk-3-dev libxine2-dev
     fi
     
+    # OS version specific dependencies
     if [ -f /etc/os-release ]; then
-        # Source the /etc/os-release file to get variables
         . /etc/os-release
-        # Extract the major version number from VERSION_ID
         VERSION_MAJOR=$(echo "$VERSION_ID" | cut -d'.' -f1)
-        # Check if the extracted major version is 22 or earlier
         if [ "$VERSION_MAJOR" = "22" ]; then
             sudo apt-get install -y libswresample-dev libdc1394-dev
         else
@@ -181,7 +169,7 @@ install_opencv() {
         sudo apt-get install -y libavresample-dev libdc1394-22-dev
     fi
 
-    # install the common dependencies
+    # Common dependencies
     sudo apt-get install -y cmake
     sudo apt-get install -y libjpeg-dev libjpeg8-dev libjpeg-turbo8-dev
     sudo apt-get install -y libpng-dev libtiff-dev libglew-dev
@@ -257,7 +245,7 @@ install_opencv() {
     -D CMAKE_CXX_FLAGS="-march=native -mtune=native" \
     -D CMAKE_C_FLAGS="-march=native -mtune=native" ..
     
-    echo "OpenCV derleniyor (bu işlem 3+ saat sürebilir)..."
+    echo "OpenCV derleniyor (bu işlem 2-3 saat sürebilir)..."
     echo "Kullanılan çekirdek sayısı: $NO_JOB"
     make -j ${NO_JOB} 
     
@@ -289,7 +277,7 @@ if [ -d ~/opencv/build ]; then
     printf "Do you wish to continue (Y/n)? "
     read answer
 
-    if [ "$answer" != "${answer#[Nn]}" ] ;then 
+    if [ "$answer" != "${confirm_switch#[Nn]}" ]; then 
         echo "OpenCV kurulumu atlanıyor"
     else
         install_opencv
@@ -298,12 +286,28 @@ else
     install_opencv
 fi
 
-# PyCUDA kurulumu
-echo "PyCUDA kurulumu başlatılıyor..."
-python3.6 -m pip install pycuda
+# VENV'e geri dön
+cd "$PROJECT_DIR"
+source "$VENV_DIR/bin/activate"
 
-# TensorRT bağımlılıkları
-echo "TensorRT bağımlılıkları kuruluyor..."
+# === VENV İÇİNDE PYTHON PAKETLERİ ===
+echo "🐍 VENV içinde Python paketleri kuruluyor..."
+
+# Temel paketler
+pip install \
+    numpy==1.19.5 \
+    Cython==0.29.36 \
+    PyYAML==5.3.1 \
+    tqdm==4.64.1 \
+    appdirs==1.4.4 \
+    typing-extensions==4.1.1
+
+# PyCUDA
+echo "🚀 PyCUDA kuruluyor..."
+pip install pycuda
+
+# === TensorRT ===
+echo "🧠 TensorRT bağımlılıkları kuruluyor..."
 sudo apt install -y \
     tensorrt \
     libnvinfer8 \
@@ -314,32 +318,47 @@ sudo apt install -y \
     libnvonnxparsers-dev
 
 echo "=========================================="
-echo "Kurulum Tamamlandı!"
-echo "=========================================="
-echo "Kurulan bileşenler:"
-echo "- OpenCV 4.9.0 (CUDA desteği ile)"
-echo "- PyCUDA"
-echo "- TensorRT"
-echo "- Tüm gerekli Python bağımlılıkları"
+echo "🎉 KURULUM TAMAMLANDI!"
 echo "=========================================="
 
 # Kurulum doğrulama
-echo "Kurulum doğrulanıyor..."
+echo "🔍 Kurulum doğrulanıyor..."
 
-echo "Python araçları:"
-python3.6 -c "import numpy; print(f'NumPy sürümü: {numpy.__version__}')"
-python3.6 -c "import Cython; print('Cython başarıyla kuruldu')"
+echo "Python ve VENV:"
+python --version
+pip --version
+echo "VENV aktif: $VIRTUAL_ENV"
+
+echo "Python paketleri:"
+python -c "import numpy; print(f'NumPy: {numpy.__version__}')"
+python -c "import Cython; print('Cython: OK')"
 
 echo "OpenCV:"
-python3.6 -c "import cv2; print(f'OpenCV sürümü: {cv2.__version__}')"
+python -c "import cv2; print(f'OpenCV: {cv2.__version__}')"
 
 echo "PyCUDA:"
-python3.6 -c "import pycuda.driver as cuda; print('PyCUDA başarıyla kuruldu')"
+python -c "import pycuda.driver as cuda; print('PyCUDA: OK')"
 
 echo "TensorRT:"
-python3.6 -c "import tensorrt; print(f'TensorRT sürümü: {tensorrt.__version__}')"
+python -c "import tensorrt; print(f'TensorRT: {tensorrt.__version__}')"
 
+echo ""
 echo "=========================================="
-echo "Tüm kurulumlar başarıyla tamamlandı!"
-echo "Projeniz için gerekli tüm bağımlılıklar kuruldu."
+echo "🚀 PROJE HAZIR!"
+echo "=========================================="
+echo "📋 KULLANIM TALİMATLARI:"
+echo ""
+echo "1. Proje dizininize gidin:"
+echo "   cd /proje/dizininiz"
+echo ""
+echo "2. VENV'i aktive edin:"
+echo "   source $VENV_DIR/bin/activate"
+echo ""
+echo "3. Projeyi çalıştırın:"
+echo "   python main.py"
+echo ""
+echo "4. İş bitince (isteğe bağlı):"
+echo "   deactivate"
+echo ""
+echo "📍 VENV dizini: $VENV_DIR"
 echo "=========================================="
