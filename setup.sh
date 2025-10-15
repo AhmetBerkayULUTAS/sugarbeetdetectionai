@@ -1,8 +1,3 @@
-#!/bin/bash
-
-# OpenCV, PyCUDA ve TensorRT Kurulum Scripti - VENV Desteği ile
-# Jetson Nano için optimize edilmiştir
-
 set -e  # Hata durumunda scripti durdur
 
 echo "=========================================="
