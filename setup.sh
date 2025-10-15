@@ -39,6 +39,22 @@ pip install --upgrade pip
 echo "✅ Virtual Environment hazır!"
 echo "📍 VENV yolu: $VENV_DIR"
 
+# === PYCUDA İÇİN KRİTİK PAKETLER ===
+echo "📚 PyCUDA için kritik bağımlılıklar kuruluyor..."
+sudo apt update
+sudo apt install -y \
+    python3-dev \
+    python3-pip \
+    python3-venv \
+    libboost-python-dev \
+    libboost-thread-dev \
+    nvidia-cuda-toolkit \
+    build-essential \
+    libc6-dev \
+    linux-libc-dev
+
+echo "✅ PyCUDA bağımlılıkları kuruldu!"
+
 # === OpenCV Kurulum Fonksiyonu ===
 install_opencv() {
     echo "=========================================="
@@ -115,7 +131,7 @@ install_opencv() {
         fi
         echo ""
     else
-        echo "Error: /proc/device-tree/model not found. Are you sure this is a Jetson Nano?"
+        echo "Error: /proc/device-tree/model not found. Are you you sure this is a Jetson Nano?"
         exit 1
     fi
     
@@ -282,8 +298,8 @@ pip install \
     appdirs \
     typing-extensions
 
-# PyCUDA
-echo "🚀 PyCUDA kuruluyor..."
+# PyCUDA - ARTIK KRİTİK BAĞIMLILIKLAR KURULU
+echo "🚀 PyCUDA kuruluyor (artık tüm bağımlılıklar hazır)..."
 pip install pycuda
 
 # === TensorRT ===
