@@ -239,20 +239,51 @@ fi
 cd "$PROJECT_DIR"
 source "$VENV_DIR/bin/activate"
 
+echo "🐍 Python paketleri kuruluyor..."
 pip install numpy==1.19.5 PyYAML tqdm appdirs typing-extensions Cython
 
 echo "🚀 PyCUDA kurulumu başlıyor..."
+
+# Önce PyCUDA'nın zaten kurulu olup olmadığını kontrol et
 if python -c "import pycuda.driver" &>/dev/null; then
     echo "✅ PyCUDA zaten kurulu."
 else
-    cd "$PROJECT_DIR"
-    if [ ! -d "pycuda" ]; then
-        git clone https://github.com/inducer/pycuda.git
+    echo "🔧 PyCUDA 2020.1 kurulumu deneniyor (Python 3.6 uyumlu)..."
+    
+    # 1. YÖNTEM: Direkt pip ile 2020.1 sürümü
+    echo "📦 Yöntem 1: pip ile pycuda==2020.1"
+    pip install pycuda==2020.1
+    
+    # 2. YÖNTEM: Eğer wheel bulunamazsa, source'tan derle
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Wheel bulunamadı, source'tan derleme deneniyor..."
+        echo "📦 Yöntem 2: Cython ve pytools kurulumu"
+        pip install Cython pytools
+        
+        echo "🔨 PyCUDA source'tan derleniyor..."
+        pip install pycuda==2020.1 --no-binary=:all:
     fi
-    cd pycuda
-    python configure.py --cuda-root=/usr/local/cuda
-    python setup.py install
-    cd "$PROJECT_DIR"
+    
+    # 3. YÖNTEM: Eğer hala başarısız olursa, git'ten clone et ve configure et
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Pip kurulumu başarısız, git'ten clone ediliyor..."
+        echo "📦 Yöntem 3: Git clone ve manuel kurulum"
+        
+        cd "$PROJECT_DIR"
+        if [ ! -d "pycuda" ]; then
+            git clone https://github.com/inducer/pycuda.git
+        fi
+        cd pycuda
+        git checkout v2020.1  # 2020.1 sürümüne geç
+        
+        echo "⚙️  Configure çalıştırılıyor..."
+        python configure.py --cuda-root=/usr/local/cuda
+        
+        echo "🔨 Derleme başlatılıyor..."
+        python setup.py install
+        
+        cd "$PROJECT_DIR"
+    fi
 fi
 
 # ======================================================================
@@ -269,11 +300,22 @@ sudo apt install -y --no-install-recommends \
 echo "=========================================="
 echo "🔍 Kurulum doğrulanıyor..."
 echo "------------------------------------------"
-python -c "import pycuda.driver as cuda; print('✅ PyCUDA OK')" || echo "❌ PyCUDA hata!"
-python -c "import cv2; print(f'✅ OpenCV {cv2.__version__}')" || echo "❌ OpenCV hata!"
-python -c "import tensorrt; print(f'✅ TensorRT {tensorrt.__version__}')" || echo "❌ TensorRT hata!"
+
+echo "PyCUDA:"
+python -c "import pycuda.driver as cuda; print('✅ PyCUDA başarıyla kuruldu!')" || echo "❌ PyCUDA kurulumunda hata!"
+
+echo "OpenCV:"
+python -c "import cv2; print(f'✅ OpenCV {cv2.__version__}')" || echo "❌ OpenCV kurulumunda hata!"
+
+echo "TensorRT:"
+python -c "import tensorrt; print(f'✅ TensorRT {tensorrt.__version__}')" || echo "❌ TensorRT kurulumunda hata!"
+
+echo "NumPy:"
+python -c "import numpy; print(f'✅ NumPy {numpy.__version__}')" || echo "❌ NumPy kurulumunda hata!"
+
 echo "------------------------------------------"
 echo "🎉 TÜM KURULUM TAMAMLANDI"
-echo "VENV: $VENV_DIR"
-echo "CUDA: $(nvcc --version | grep release)"
+echo "📍 VENV: $VENV_DIR"
+echo "🐍 Python: $(python --version)"
+echo "🔧 CUDA: $(nvcc --version | grep release || echo 'NVCC bulunamadı')"
 echo "=========================================="
