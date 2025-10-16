@@ -52,7 +52,7 @@ echo "🎯 Python versiyonu: $(python --version)"
 pip install --upgrade pip setuptools wheel
 
 # ======================================================================
-# === OpenCV kurulumu (kısaltılmış) ===
+# === OpenCV 4.9.0 Derleme Fonksiyonu ===
 # ======================================================================
 install_opencv () {
     echo "🔧 OpenCV kurulumu başlıyor..."
@@ -80,6 +80,7 @@ install_opencv () {
     echo "🎉 OpenCV 4.9.0 başarıyla kuruldu!"
 }
 
+# --- OpenCV kontrol & çağırma ---
 if [ -d ~/opencv/build ]; then
     read -p "📁 ~/opencv/build mevcut. Yeniden kurulsun mu? (Y/n): " answer
     if [[ "$answer" =~ ^[Nn]$ ]]; then
@@ -92,7 +93,26 @@ else
 fi
 
 # ======================================================================
-# === PyCUDA kurulumu - stddef.h güvenli modu ile ===
+# === stddef.h Kontrol ve Düzeltme ===
+# ======================================================================
+echo "🔍 stddef.h başlık dosyası kontrol ediliyor..."
+if [ ! -f /usr/include/stddef.h ]; then
+    echo "⚠️  /usr/include/stddef.h bulunamadı!"
+    FOUND_STDDEF=$(sudo find /usr/include -name "stddef.h" 2>/dev/null | grep linux | head -n 1)
+    if [ -n "$FOUND_STDDEF" ]; then
+        echo "✅ Alternatif bulundu: $FOUND_STDDEF"
+        echo "📎 Sembolik link oluşturuluyor..."
+        sudo ln -sf "$FOUND_STDDEF" /usr/include/stddef.h
+        echo "🔗 Link oluşturuldu: /usr/include/stddef.h -> $FOUND_STDDEF"
+    else
+        echo "❌ Uygun stddef.h bulunamadı, PyCUDA kurulumu başarısız olabilir."
+    fi
+else
+    echo "✅ /usr/include/stddef.h mevcut."
+fi
+
+# ======================================================================
+# === Python paketleri ve PyCUDA kurulumu ===
 # ======================================================================
 cd "$PROJECT_DIR"
 source "$VENV_DIR/bin/activate"
@@ -100,28 +120,8 @@ source "$VENV_DIR/bin/activate"
 pip install numpy==1.19.5 PyYAML tqdm appdirs typing-extensions Cython
 
 echo "🚀 PyCUDA (2020.1) kurulumu başlıyor..."
-
-# --- stddef.h fix: linux versiyonunu geçici olarak gizle ---
-LINUX_STDDEF="/usr/include/linux/stddef.h"
-if [ -f "$LINUX_STDDEF" ]; then
-    echo "⚙️  Geçici olarak $LINUX_STDDEF dosyası gizleniyor..."
-    sudo mv "$LINUX_STDDEF" "$LINUX_STDDEF.bak"
-    STDDEF_HIDDEN=true
-else
-    STDDEF_HIDDEN=false
-fi
-
-# --- PyCUDA kurulumu ---
 pip install Cython pytools
 pip install pycuda==2020.1 || echo "⚠️ PyCUDA kurulamadı, lütfen CUDA'yı kontrol edin."
-
-# --- stddef.h geri yükleme ---
-if [ "$STDDEF_HIDDEN" = true ]; then
-    echo "🔁 stddef.h geri yükleniyor..."
-    sudo mv "$LINUX_STDDEF.bak" "$LINUX_STDDEF"
-fi
-
-echo "✅ PyCUDA kurulumu tamamlandı."
 
 # ======================================================================
 # === TensorRT kontrolü ===
