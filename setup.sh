@@ -43,7 +43,6 @@ echo "📍 VENV yolu: $VENV_DIR"
 echo "📦 Sistem paketleri kuruluyor..."
 sudo apt update
 sudo apt install -y \
-    python3-pycuda \
     python3-dev \
     python3-pip \
     python3-venv \
@@ -74,6 +73,30 @@ else
     echo "❌ CUDA bulunamadı! Jetson Nano'da CUDA JetPack ile kurulu olmalı"
     exit 1
 fi
+
+# === PYCUDA WHEEL İNDİRME ===
+echo "🚀 PyCUDA wheel indiriliyor..."
+cd /tmp
+
+# PyCUDA wheel dosyasını indir
+PYCUDA_WHEEL="pycuda-2020.1-cp36-cp36m-linux_aarch64.whl"
+echo "📥 PyCUDA wheel indiriliyor: $PYCUDA_WHEEL"
+
+# Farklı kaynaklardan deneyelim
+wget -O "$PYCUDA_WHEEL" "https://github.com/jetson-nano-wheels/python3.6-pycuda/releases/download/v1.0/pycuda-2020.1-cp36-cp36m-linux_aarch64.whl" || \
+wget -O "$PYCUDA_WHEEL" "https://files.pythonhosted.org/packages/cp36/p/pycuda/pycuda-2020.1-cp36-cp36m-linux_aarch64.whl" || \
+echo "❌ Wheel indirme başarısız, alternatif kaynak deneniyor..."
+
+# Eğer wheel indirilemezse, alternatif yöntem
+if [ ! -f "$PYCUDA_WHEEL" ]; then
+    echo "🔧 Alternatif PyCUDA kaynağı deneniyor..."
+    # NVIDIA'nın resmi PyCUDA wheel'ini indirmeyi dene
+    wget -O "$PYCUDA_WHEEL" "https://developer.download.nvidia.com/assets/cuda/files/pycuda-2020.1-cp36-cp36m-linux_aarch64.whl" || \
+    echo "⚠️  Wheel indirilemedi, pip ile kurulum deneneyecek"
+fi
+
+# Proje dizinine geri dön
+cd "$PROJECT_DIR"
 
 # === OpenCV Kurulum Fonksiyonu ===
 install_opencv() {
@@ -317,6 +340,18 @@ pip install \
     appdirs \
     typing-extensions
 
+# === PYCUDA WHEEL KURULUMU ===
+echo "🚀 PyCUDA wheel kurulumu..."
+
+# Wheel dosyasını kontrol et ve kur
+if [ -f "/tmp/pycuda-2020.1-cp36-cp36m-linux_aarch64.whl" ]; then
+    echo "📦 PyCUDA wheel dosyası bulundu, kuruluyor..."
+    pip install /tmp/pycuda-2020.1-cp36-cp36m-linux_aarch64.whl
+else
+    echo "⚠️  Wheel dosyası bulunamadı, pip ile kurulum deneniyor..."
+    pip install pycuda
+fi
+
 # === TENSORRT ===
 echo "🧠 TensorRT bağımlılıkları kontrol ediliyor..."
 sudo apt install -y --no-install-recommends \
@@ -335,7 +370,7 @@ python --version
 pip --version
 
 echo "PyCUDA:"
-python -c "import pycuda.driver as cuda; print('✅ PyCUDA başarıyla kuruldu!')"
+python -c "import pycuda.driver as cuda; print('✅ PyCUDA başarıyla kuruldu!')" || echo "❌ PyCUDA kurulumunda hata!"
 
 echo "OpenCV:"
 python -c "import cv2; print(f'✅ OpenCV {cv2.__version__}')"
@@ -346,18 +381,4 @@ python -c "import tensorrt; print(f'✅ TensorRT {tensorrt.__version__}')"
 echo ""
 echo "=========================================="
 echo "🚀 PROJE HAZIR!"
-echo "=========================================="
-echo "📋 KULLANIM TALİMATLARI:"
-echo ""
-echo "1. Bu dizinde VENV'i aktive edin:"
-echo "   source venv/bin/activate"
-echo ""
-echo "2. Projeyi çalıştırın:"
-echo "   python main.py"
-echo ""
-echo "3. İş bitince (isteğe bağlı):"
-echo "   deactivate"
-echo ""
-echo "📍 Proje dizini: $PROJECT_DIR"
-echo "🐍 VENV dizini: $VENV_DIR"
 echo "=========================================="
