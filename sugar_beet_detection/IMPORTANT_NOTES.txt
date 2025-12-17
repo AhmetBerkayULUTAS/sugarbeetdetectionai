@@ -1,0 +1,32 @@
+⚠️  ÖNEMLİ NOTLAR
+
+1. MODEL DOSYASI
+   - model2.engine dosyasını models/ klasörüne kopyalayın
+   - Bu dosya TensorRT modelidir
+
+2. MEVCUT DOSYALAR
+   Aşağıdaki dosyaları scripts/ klasörüne kopyalayın:
+   - detector.py
+   - camera.py
+   - metrics.py (opsiyonel)
+   - visualizer.py (opsiyonel)
+
+3. BUILD ETME
+   cd ~/ros2_ws
+   colcon build --packages-select sugar_beet_detection
+   source install/setup.bash
+
+4. AĞ AYARLARI
+   Her iki makinede:
+   export ROS_DOMAIN_ID=42
+   export ROS_LOCALHOST_ONLY=0
+
+5. TEST
+   # Jetson'da
+   ros2 launch sugar_beet_detection jetson_publisher.launch.py
+   
+   # Host'ta
+   ros2 topic list
+   ros2 topic echo /ai_detections
+
+DAHA FAZLA BİLGİ: docs/ klasörüne bakın

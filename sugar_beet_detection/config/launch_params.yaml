@@ -1,0 +1,12 @@
+# Launch Parametreleri
+
+ai_publisher:
+  ros__parameters:
+    camera_type: "usb"
+    camera_id: 0
+    engine_path: "model2.engine"
+    conf_threshold: 0.5
+    nms_threshold: 0.30
+    publish_rate: 30
+    send_annotated: true
+    verbose: false
