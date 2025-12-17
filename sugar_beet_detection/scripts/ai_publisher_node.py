@@ -69,10 +69,13 @@ class AIPubNode(Node):
         
         # Publishers - UI Node'unuzun beklediği topic'ler
         self.get_logger().info("\n📡 Publishers oluşturuluyor...")
-        
-        # 1. Görüntü publisher
+	# 0. Ham Görüntü Publisher
+	# self.raw_image_pub = self.create_publisher(Image, 'camera1/ai_output_image', 10)
+	# self.get_logger().info("  ✅ /ai_output_image")
+
+        # 1. İşlenmiş Görüntü publisher
         self.image_pub = self.create_publisher(Image, 'camera1/cv_image_raw', 10)
-        self.get_logger().info("  ✅ /ai_output_image")
+        self.get_logger().info("  ✅ /cv_image_raw")
         
         # 2. Detections publisher
         if CUSTOM_MSGS_AVAILABLE:
@@ -203,7 +206,9 @@ class AIPubNode(Node):
     def timer_callback(self):
         """Ana döngü - her frame'de çalışır"""
         try:
-            # 1. Frame al (acquisition time ölç)
+
+		
+            # 1. Frame al (acquisition time ölç) ve Ham görüntüyü publish et
             acq_start = time.time()
             frame = self.camera.get_frame()
             acq_time = (time.time() - acq_start) * 1000  # ms
@@ -213,6 +218,7 @@ class AIPubNode(Node):
                 return
             
             self.frame_count += 1
+
             
             # 2. AI inference (inference time ölç)
             inf_start = time.time()
@@ -271,7 +277,7 @@ class AIPubNode(Node):
                 self.metrics_pub.publish(metrics_msg)
             
             # 12. Log (her 30 frame'de)
-            if self.frame_count % 30 == 0:
+            if self.frame_count % 60 == 0:
                 avg_conf = np.mean([r['score'] for r in results]) if results else 0.0
                 self.get_logger().info(
                     f"📊 Frame {self.frame_count:5d} | "
