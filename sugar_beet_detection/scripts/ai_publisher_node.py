@@ -39,7 +39,7 @@ class AIPubNode(Node):
         self.declare_parameter('engine_path', 'model2.engine')
         self.declare_parameter('conf_threshold', 0.5)
         self.declare_parameter('nms_threshold', 0.30)
-        self.declare_parameter('publish_rate', 30)
+        self.declare_parameter('publish_rate', 21)#usb kamera 21 destekliyor (genel 30)
         self.declare_parameter('send_annotated', True)
         self.declare_parameter('verbose', False)
         
@@ -71,7 +71,7 @@ class AIPubNode(Node):
         self.get_logger().info("\n📡 Publishers oluşturuluyor...")
         
         # 1. Görüntü publisher
-        self.image_pub = self.create_publisher(Image, 'ai_output_image', 10)
+        self.image_pub = self.create_publisher(Image, 'camera1/cv_image_raw', 10)
         self.get_logger().info("  ✅ /ai_output_image")
         
         # 2. Detections publisher

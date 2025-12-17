@@ -1,5 +1,6 @@
 # Pancar tespit sonuçları
 # Her tespit için bounding box koordinatları ve güven skoru
+# int32 camera_id
 
 int32 count                    # Toplam tespit sayısı
 float32[] confidences          # Her tespitin güven skorları [0.85, 0.92, ...]

@@ -119,7 +119,6 @@ class Camera:
             supported: Desteklenen çözünürlük listesi
         """
         common_resolutions = [
-            (320, 240),    # QVGA
             (640, 480),    # VGA
             (800, 600),    # SVGA
             (1024, 768),   # XGA

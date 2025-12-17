@@ -33,6 +33,7 @@ install(PROGRAMS
 # Launch dosyalarını yükle
 install(DIRECTORY
   launch
+  models
   DESTINATION share/${PROJECT_NAME}
 )
 

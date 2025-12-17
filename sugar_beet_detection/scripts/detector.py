@@ -101,9 +101,9 @@ class Detector:
             # Sonuçları göster (her zaman)
             if results:
                 self.detection_count += len(results)
-                if self.frame_count % 10 == 0:
+                if self.frame_count % 30 == 0:
                     print(f"🌱 Frame {self.frame_count}: {len(results)} pancar - Toplam: {self.detection_count}")
-            elif self.frame_count % 50 == 0:
+            elif self.frame_count % 100 == 0:
                 print(f"🔍 Frame {self.frame_count}: Tespit yok")
                 
             return results
