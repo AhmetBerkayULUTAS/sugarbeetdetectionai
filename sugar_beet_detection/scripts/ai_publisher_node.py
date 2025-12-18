@@ -69,9 +69,9 @@ class AIPubNode(Node):
         
         # Publishers - UI Node'unuzun beklediği topic'ler
         self.get_logger().info("\n📡 Publishers oluşturuluyor...")
-	# 0. Ham Görüntü Publisher
-	# self.raw_image_pub = self.create_publisher(Image, 'camera1/ai_output_image', 10)
-	# self.get_logger().info("  ✅ /ai_output_image")
+	    # 0. Ham Görüntü Publisher
+        self.raw_image_pub = self.create_publisher(Image, 'camera1/ai_output_image', 10)
+        self.get_logger().info("  ✅ /ai_output_image")
 
         # 1. İşlenmiş Görüntü publisher
         self.image_pub = self.create_publisher(Image, 'camera1/cv_image_raw', 10)
@@ -220,6 +220,9 @@ class AIPubNode(Node):
             self.frame_count += 1
 
             
+            self.raw_image_pub.publish(
+                self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+            )
             # 2. AI inference (inference time ölç)
             inf_start = time.time()
             results = self.detector.infer(frame)

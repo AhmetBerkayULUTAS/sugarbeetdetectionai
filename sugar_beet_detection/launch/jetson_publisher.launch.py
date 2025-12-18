@@ -61,8 +61,8 @@ def generate_launch_description():
         # AI Publisher Node
         Node(
             package='sugar_beet_detection',
-            node_executable='ai_publisher_node.py',
-            node_name='ai_publisher',
+            executable='ai_publisher_node.py',
+            name='ai_publisher',
             output='screen',
             parameters=[{
                 'camera_type': LaunchConfiguration('camera_type'),
